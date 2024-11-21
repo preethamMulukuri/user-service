@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - default
+
+  user-service:
+    build:
+      context: ./user-service    # Point to the user-service folder, relative path
+      dockerfile: Dockerfile      # Explicitly mention the Dockerfile name if it's named 'Dockerfile'
+    container_name: user-service
+    ports:
+      - "5001:5001"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/userdb
+      - JWT_SECRET='preetham@1'
+    depends_on:
+      - mongo
+    networks:
+      - default
+
+  restaurant-service:
+    build:
+      context: ./restaurant-service
+      dockerfile: Dockerfile
+    container_name: restaurant-service
+    environment:
+      - JWT_SECRET='preetham@1'
+      - MONGO_URI=mongodb://mongo:27017/restaurantdb
+    ports:
+      - "5002:5002"
+    depends_on:
+      - mongo
+    networks:
+      - default
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    environment:
+      - JWT_SECRET='preetham@1'
+      - MONGO_URI=mongodb://mongo:27017/orderdb
+    ports:
+      - "5003:5003"
+    depends_on:
+      - mongo
+    networks:
+      - default
+
+
+volumes:
+  mongo-data:
+
+networks:
+  default:
+    name: scalableassignment_2_default
